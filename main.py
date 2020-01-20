@@ -9,11 +9,13 @@ import hashlib
 import json
 import requests
 
-#get session id
+url = "https://development.smilebasicsource.com"
+
+# get session id
 def getsession(username, password):
     print(username,password)
     response = requests.post(
-        "https://development.smilebasicsource.com/query/submit/login",
+        f"{url}/query/submit/login",
         params = {"session":"3"}, #put garbage in
         data = {
             "username":username,
@@ -27,10 +29,10 @@ def getsession(username, password):
 
     return result
 
-# use session id to get chatauth (and uid!)
+# get chatauth (and uid!)
 def getchatauth(session):
     response = requests.get(
-        "https://development.smilebasicsource.com/query/request/chatauth",
+        f"{url}/query/request/chatauth",
         params = {"session":session}
         )
     return response.json()
@@ -49,7 +51,7 @@ try:
         session = info[2].rstrip()
         print("got previous session!")
     elif len(info) < 2 or username == "" or password == "":
-        print("not enough auth info in file!") # p sure this also 
+        print("not enough auth info in file!") # i think this case doesn't save auth.txt
         username = input("username:")
         password = hashlib.md5(input("password:").encode()).hexdigest()
         
@@ -95,16 +97,18 @@ import asyncio
 import websockets
 
 async def main(uid,chatauth):
+    #debug: ws://direct.smilebasicsource.com:45697/chatserver
+    #main:  ws://direct.smilebasicsource.com:45695/chatserver
     uri = "ws://direct.smilebasicsource.com:45697/chatserver"
     async with websockets.connect(uri, ping_interval=None) as server:
-        #bind
+        # bind
         message = json.dumps({"type":"bind","lessData":True,"uid":uid,"key":chatauth})
         await server.send(message)
         print(f"us:{message}")
         response = await server.recv()
         print(f"server:{response}")
         
-        #
+        # communicate with server
         queuelist = [] # hold queues for sending back to client
         async def listenserver(): # send messages to clients
             print(f"listening on {uri}")
@@ -120,7 +124,7 @@ async def main(uid,chatauth):
                 request = await requests.get()
                 await server.send(request)
                 
-        async def handler(websocket, path): # be a server. i am speed.
+        async def handler(websocket, path): # BE the server
             response = asyncio.Queue()
             queuelist.append(response)
             print("connected to client")
@@ -146,10 +150,7 @@ async def main(uid,chatauth):
                 await asyncio.gather(listenclient(),sendclient(),)
             queuelist.remove(response) # GOSH i hope this works, otherwise IM FUCKED>EDIT: it worked
             print("disconnected from client")
-            print(queuelist)
-        await asyncio.gather(
-            listenserver(), requestserver(),
-            websockets.serve(handler,"localhost",8765)
-            )
+            
+        await asyncio.gather(listenserver(), requestserver(), websockets.serve(handler,"localhost",8765))
         
 asyncio.get_event_loop().run_until_complete(main(uid,chatauth))
