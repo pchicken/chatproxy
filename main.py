@@ -9,7 +9,7 @@ import hashlib
 import json
 import requests
 
-url = "https://development.smilebasicsource.com"
+url = "https://smilebasicsource.com"
 
 # get session id
 def getsession(username, password):
@@ -99,7 +99,7 @@ import websockets
 async def main(uid,chatauth):
     #debug: ws://direct.smilebasicsource.com:45697/chatserver
     #main:  ws://direct.smilebasicsource.com:45695/chatserver
-    uri = "ws://direct.smilebasicsource.com:45697/chatserver"
+    uri = "ws://direct.smilebasicsource.com:45695/chatserver"
     async with websockets.connect(uri, ping_interval=None) as server:
         # bind
         message = json.dumps({"type":"bind","lessData":True,"uid":uid,"key":chatauth})
@@ -113,16 +113,14 @@ async def main(uid,chatauth):
         async def listenserver(): # send messages to clients
             print(f"listening on {uri}")
             while True:
-                message = await server.recv()
-                print(message)
+                print(await server.recv())
                 for queue in queuelist:
                     await queue.put(message)
                     
         requests = asyncio.Queue() # to get requests from clients
         async def requestserver(): # forward requests to server
             while True:
-                request = await requests.get()
-                await server.send(request)
+                await server.send(await requests.get())
                 
         async def handler(websocket, path): # BE the server
             response = asyncio.Queue()
@@ -137,14 +135,14 @@ async def main(uid,chatauth):
                     while True:
                         try:
                             await requests.put(await websocket.recv())
-                        except websockets.exceptions.ConnectionClosedError:
+                        except:
                             break
                             
                 async def sendclient(): # forward messages to client
                     while True:
                         try:
                             await websocket.send(await response.get())
-                        except websockets.exceptions.ConnectionClosedError:
+                        except:
                             break
                             
                 await asyncio.gather(listenclient(),sendclient(),)
