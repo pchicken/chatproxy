@@ -16,5 +16,5 @@ connects to sbs chat and serves in its stead (persistent session, multiple clien
  3. add "socketOverload" to your [special field](https://smilebasicsource.com/userhome)
  4. modify the second to last line of main.py and the webSocketURL in the chatJS to match and fit your situation
 ## what it does
-it holds a connection with sbs chat and serves it to chat clients, even multiple at once.
+it holds a connection with sbs chat and serves it to chat clients, even multiple at once.  
 regular chat clients can connect to this by changing the address they connect to, which is what the setup above does.
