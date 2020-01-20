@@ -9,7 +9,7 @@ import hashlib
 import json
 import requests
 
-url = "https://smilebasicsource.com"
+url = "https://lumage.smilebasicsource.com"
 
 # get session id
 def getsession(username, password):
@@ -99,7 +99,7 @@ import websockets
 async def main(uid,chatauth):
     #debug: ws://direct.smilebasicsource.com:45697/chatserver
     #main:  ws://direct.smilebasicsource.com:45695/chatserver
-    uri = "ws://direct.smilebasicsource.com:45695/chatserver"
+    uri = "ws://direct.smilebasicsource.com:45697/chatserver"
     async with websockets.connect(uri, ping_interval=None) as server:
         # bind
         message = json.dumps({"type":"bind","lessData":True,"uid":uid,"key":chatauth})
@@ -113,15 +113,23 @@ async def main(uid,chatauth):
         async def listenserver(): # send messages to clients
             print(f"listening on {uri}")
             while True:
-                print(await server.recv())
-                for queue in queuelist:
-                    await queue.put(message)
+                try:
+                    received = await server.recv()
+                    print(received)
+                    for queue in queuelist:
+                        await queue.put(received)
+                except:
+                    break
                     
-        requests = asyncio.Queue() # to get requests from clients
-        async def requestserver(): # forward requests to server
+        messages = asyncio.Queue() # to get messages from clients
+        async def messageserver(): # forward messages to server
             while True:
-                await server.send(await requests.get())
-                
+                try:
+                    message = await messages.get()
+                    await server.send(message)
+                except:
+                    break
+                    
         async def handler(websocket, path): # BE the server
             response = asyncio.Queue()
             queuelist.append(response)
@@ -130,18 +138,21 @@ async def main(uid,chatauth):
             bind = json.loads(message)
             if bind["key"] == chatauth:
                 async def listenclient(): # send requests to server
-                    await requests.put('{"type":"request","request":"userList"}')
-                    await requests.put('{"type":"request","request":"messageList"}')
+                    await messages.put('{"type":"request","request":"userList"}')
+                    await messages.put('{"type":"request","request":"messageList"}')
                     while True:
                         try:
-                            await requests.put(await websocket.recv())
+                            received = await websocket.recv()
+                            print(received)
+                            await messages.put(received)
                         except:
                             break
                             
                 async def sendclient(): # forward messages to client
                     while True:
                         try:
-                            await websocket.send(await response.get())
+                            message = await response.get()
+                            await websocket.send(message)
                         except:
                             break
                             
@@ -149,6 +160,6 @@ async def main(uid,chatauth):
             queuelist.remove(response) # GOSH i hope this works, otherwise IM FUCKED>EDIT: it worked
             print("disconnected from client")
             
-        await asyncio.gather(listenserver(), requestserver(), websockets.serve(handler,"localhost",8765))
+        await asyncio.gather(listenserver(), messageserver(), websockets.serve(handler,"localhost",8765))
         
 asyncio.get_event_loop().run_until_complete(main(uid,chatauth))
