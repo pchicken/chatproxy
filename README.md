@@ -1,8 +1,8 @@
 # chatproxy
 connects to sbs chat and serves in its stead (persistent session, multiple clients at once)
 ## requirements
-python 3.4+
-`websockets`
+- python 3.4+
+- websockets library
 ## how to use in smilebasicsource.com/chat (special thanks to 12)
  1. modify the addresses in main.py as you see fit (lines 12 and 102)
  2. add this to your [chatJS](https://smilebasicsource.com/editor?type=chat):
