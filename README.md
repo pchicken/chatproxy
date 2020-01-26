@@ -6,7 +6,7 @@ connects to sbs chat and serves in its stead (persistent session, multiple clien
 ## how to use in smilebasicsource.com/chat (special thanks to 12)
  1. modify the addresses in main.py as you see fit (lines 12 and 102)
  2. add this to your [chatJS](https://smilebasicsource.com/editor?type=chat):
-`
+```
 if(hasSpecial("socketOverload")){
     polyChat.onClose=onClose;
     polyChat.onError=onError;
@@ -16,7 +16,7 @@ if(hasSpecial("socketOverload")){
     activePingId=window.setInterval(activePing,45000);
     window.addEventListener('focus',activePing);
 }
-`
+```
  3. add "socketOverload" to your [special field](https://smilebasicsource.com/userhome)
  4. modify the second to last line of main.py and the webSocketURL in the chatJS to match and fit your situation
 ## what it does
