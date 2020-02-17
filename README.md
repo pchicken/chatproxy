@@ -19,6 +19,7 @@ if(hasSpecial("socketOverload")){
 ```
  3. add "socketOverload" to your [special field](https://smilebasicsource.com/userhome)
  4. modify the second to last line of main.py and the webSocketURL in the chatJS to match and fit your situation
+ 
  4a. this means that you might have to change line 163 `websockets.serve(handler,"localhost",8765)` to `websockets.serve(handler,port=8765)`
 ## what it does
 it holds a connection with sbs chat and serves it to chat clients, even multiple at once.  
